@@ -88,3 +88,15 @@ h2{margin:0 0 16px;font-size:22px}
 .dotm{width:9px;height:9px;border-radius:50%;display:inline-block}
 .foot a{color:var(--accent);text-decoration:none}
 @media(max-width:640px){.hero h1{font-size:30px}.steps{grid-template-columns:1fr}}
+
+/* --- Mockup de video en el hero --- */
+.hero-visual{max-width:620px;margin:6px auto 10px}
+.browser{background:#0b0b16;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 30px 70px rgba(124,58,237,.25)}
+.browser-bar{display:flex;gap:7px;padding:10px 14px;background:#141226;border-bottom:1px solid var(--border)}
+.browser-bar span{width:11px;height:11px;border-radius:50%;background:#3a3358}
+.browser-bar span:nth-child(1){background:#ff5f57}.browser-bar span:nth-child(2){background:#febc2e}.browser-bar span:nth-child(3){background:#28c840}
+.browser video{display:block;width:100%;height:auto}
+/* --- Testimonios --- */
+.testi .stars{color:#fbbf24;font-size:15px;letter-spacing:2px;margin-bottom:6px}
+.testi b{display:block;margin-top:10px;font-size:14px}
+.testi span{color:var(--muted);font-size:12.5px}

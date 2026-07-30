@@ -14,7 +14,10 @@ def _font(name, size):
         if os.path.exists(c): return ImageFont.truetype(c, size)
     return ImageFont.load_default()
 
-FORMATS = {"16:9": (1920, 1080), "9:16": (1080, 1920)}
+# Modo bajo consumo (LOW_MEM=1): renderiza en 720p, ideal para servidores con poca RAM (plan gratis).
+LOW_MEM = os.getenv("LOW_MEM") == "1"
+FORMATS = ({"16:9": (1280, 720), "9:16": (720, 1280)} if LOW_MEM
+           else {"16:9": (1920, 1080), "9:16": (1080, 1920)})
 BRAND = (109, 40, 217); ACCENT = (34, 197, 94)
 BRAND_A = os.getenv("BRAND_A", "Idea"); BRAND_B = os.getenv("BRAND_B", "Video")
 UA = {"User-Agent": "Mozilla/5.0 (compatible; IdeaVideo/2.0)"}
@@ -184,7 +187,7 @@ def _clip(image,audio,dur,fmt,out):
     vf=(f"scale={W}:{H},zoompan=z='min(zoom+0.0005,1.10)':d={frames}"
         f":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={W}x{H}:fps=30,format=yuv420p")
     subprocess.run(["ffmpeg","-y","-loop","1","-i",image,"-i",audio,"-vf",vf,"-t",f"{dur:.2f}",
-        "-c:v","libx264","-preset","veryfast","-c:a","aac","-b:a","128k","-pix_fmt","yuv420p","-shortest",out],
+        "-c:v","libx264","-preset","veryfast","-threads","1","-c:a","aac","-b:a","128k","-pix_fmt","yuv420p","-shortest",out],
         check=True, capture_output=True)
     return out
 
@@ -230,7 +233,7 @@ def render(segments, fmt, workdir, out_path, voice="es-PE-CamilaNeural", engine=
         srt.write_text("\n".join(L)); subbed=str(workdir/"sub.mp4")
         r=subprocess.run(["ffmpeg","-y","-i",final,"-vf",
             f"subtitles={srt}:force_style='FontName=DejaVu Sans,FontSize=16,PrimaryColour=&H00FFFFFF,BorderStyle=3,Outline=1'",
-            "-c:a","copy",subbed], capture_output=True)
+            "-threads","1","-c:a","copy",subbed], capture_output=True)
         if os.path.exists(subbed) and r.returncode==0: final=subbed
     os.replace(final,out_path)
     if progress: progress(100,"¡Video listo!")

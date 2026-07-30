@@ -23,7 +23,7 @@ app = Flask(__name__, static_folder="static", static_url_path="")
 app.secret_key = os.getenv("SECRET_KEY", "cambia-esto-en-produccion")
 JOBS = {}
 # Cola de render con concurrencia limitada (escala: sube RENDER_WORKERS o migra a Redis+workers).
-EXECUTOR = ThreadPoolExecutor(max_workers=int(os.getenv("RENDER_WORKERS", "2")))
+EXECUTOR = ThreadPoolExecutor(max_workers=int(os.getenv("RENDER_WORKERS", "1")))
 
 VOICES = [
     {"id":"es-PE-CamilaNeural","label":"Camila — Mujer (Perú)","lang":"es"},
