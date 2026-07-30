@@ -1,0 +1,3 @@
+Coloca aquí un archivo de música .mp3 LIBRE DE DERECHOS y se usará como fondo (volumen bajo) en los videos.
+Fuentes gratuitas recomendadas: YouTube Audio Library, Pixabay Music, Free Music Archive.
+Si no hay ningún archivo, los videos se generan sin música (sin error).
