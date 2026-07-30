@@ -32,11 +32,11 @@ PLANS = {
     },
     "creador": {
         "name": "Creador", "price_pen": 89, "price_usd": 25,
-        "monthly_quota": 60, "watermark": False, "support": False,
+        "monthly_quota": 50, "watermark": False, "support": False,
         "tagline": "Sube shorts todos los días.",
-        "desc": "~60 videos/mes · prioridad de render · más voces",
+        "desc": "~50 videos/mes · prioridad de render · más voces",
         "features": [
-            "60 videos al mes",
+            "50 videos al mes",
             "Todo lo del plan Emprendedor",
             "Prioridad en la cola de render",
             "Más voces y estilos de guion",
@@ -46,11 +46,11 @@ PLANS = {
     },
     "pro": {
         "name": "Pro / Agencia", "price_pen": 199, "price_usd": 55,
-        "monthly_quota": 300, "watermark": False, "support": True,
+        "monthly_quota": 100, "watermark": False, "support": True,
         "tagline": "Para agencias y alto volumen.",
-        "desc": "Volumen alto · soporte y mentorías · versión Desktop",
+        "desc": "100 videos/mes · soporte y mentorías · versión Desktop",
         "features": [
-            "300 videos al mes",
+            "100 videos al mes",
             "Todo lo del plan Creador",
             "Soporte y mentorías 1 a 1",
             "Versión Desktop incluida",
