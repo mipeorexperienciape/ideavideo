@@ -76,6 +76,33 @@ def expand_idea_with_llm(idea, tone="informativo", n_scenes=5, lang="es"):
     except Exception:
         return None
 
+# ---------- imágenes con IA (Pollinations, gratis y sin clave) ----------
+def fetch_ai_image(prompt, fmt, workdir, idx):
+    """Genera una imagen cinematográfica con IA (Pollinations). Devuelve la ruta o None."""
+    prompt = (prompt or "").strip()
+    if not prompt:
+        return None
+    try:
+        import urllib.parse
+        W, H = FORMATS[fmt]
+        style = "cinematic photography, dramatic lighting, highly detailed, realistic, high quality, 8k"
+        full = f"{prompt}, {style}"
+        model = os.getenv("AI_IMAGE_MODEL", "flux")  # 'flux' (mejor) o 'turbo' (más rápido)
+        url = (f"https://image.pollinations.ai/prompt/{urllib.parse.quote(full[:320])}"
+               f"?width={W}&height={H}&nologo=true&model={model}&seed={idx+1}")
+        r = requests.get(url, headers=UA, timeout=float(os.getenv("AI_IMAGE_TIMEOUT", "90")))
+        if r.status_code == 200 and r.content and len(r.content) > 3000:
+            path = str(Path(workdir) / f"ai{idx}.jpg")
+            open(path, "wb").write(r.content)
+            try:
+                Image.open(path).verify()  # confirmar que es una imagen válida
+            except Exception:
+                return None
+            return path
+    except Exception:
+        return None
+    return None
+
 # ---------- imágenes (Pexels, gratis con clave) ----------
 def fetch_pexels_image(query, fmt, workdir, idx):
     key = os.getenv("PEXELS_API_KEY")
@@ -148,8 +175,8 @@ def make_visual(seg, fmt, out_path, idx=0, watermark=False, bg_path=None):
             bg=Image.open(bg_path).convert("RGB"); sc=max(W/bg.width,H/bg.height)
             bg=bg.resize((int(bg.width*sc)+1,int(bg.height*sc)+1))
             x=(bg.width-W)//2; y=(bg.height-H)//2
-            bg=bg.crop((x,y,x+W,y+H)).filter(ImageFilter.GaussianBlur(5))
-            img=Image.blend(bg, Image.new("RGB",(W,H),(6,6,16)), 0.5)
+            bg=bg.crop((x,y,x+W,y+H)).filter(ImageFilter.GaussianBlur(2))
+            img=Image.blend(bg, Image.new("RGB",(W,H),(6,6,16)), 0.28)
         except Exception:
             img=_gradient(W,H)
     else:
@@ -208,8 +235,13 @@ def render(segments, fmt, workdir, out_path, voice="es-PE-CamilaNeural", engine=
         if progress: progress(int(10+70*i/n), f"Generando escena {i+1}/{n}…")
         audio=str(workdir/f"a{i}.mp3"); seg["duration"]=synthesize(seg["text"],voice,audio,engine=engine)
         bg=None
-        if use_images and seg["kind"]=="scene":
-            bg=fetch_pexels_image(seg.get("query",""), fmt, workdir, i)
+        if use_images and seg["kind"] in ("scene","intro"):
+            prompt = seg.get("query") or seg.get("headline") or seg.get("text","")
+            if os.getenv("AI_IMAGES") == "1":
+                # IA (Pollinations) como principal; si falla, cae a Pexels; si no, fondo de marca.
+                bg = fetch_ai_image(prompt, fmt, workdir, i) or fetch_pexels_image(seg.get("query",""), fmt, workdir, i)
+            else:
+                bg = fetch_pexels_image(seg.get("query",""), fmt, workdir, i)
         image=str(workdir/f"img{i}.jpg"); make_visual(seg,fmt,image,idx=i,watermark=watermark,bg_path=bg)
         clip=str(workdir/f"c{i}.mp4"); _clip(image,audio,seg["duration"],fmt,clip); clips.append(clip)
     if progress: progress(84,"Uniendo escenas…")
