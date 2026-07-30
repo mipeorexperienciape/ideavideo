@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IdeaVideo — Crea videos y shorts con IA en minutos</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="logo" onclick="ME?go('generator'):scrollTo(0,0)">Idea<span>Video</span></div>
+  <nav id="nav" class="hidden">
+    <button data-v="generator" class="active">Crear</button>
+    <button data-v="videos">Mis videos</button>
+    <button data-v="plans">Planes</button>
+    <button data-v="admin" id="navAdmin" class="hidden">Admin</button>
+  </nav>
+  <div class="spacer"></div>
+  <span id="usageChip" class="chip hidden"></span>
+  <span id="userChip" class="chip hidden"></span>
+  <button id="logoutBtn" class="linkbtn hidden" onclick="logout()">Salir</button>
+  <button id="loginTop" class="linkbtn" onclick="scrollToAuth()">Ingresar</button>
+</header>
+
+<main>
+  <!-- LANDING / AUTH -->
+  <section id="view-auth">
+    <div class="hero">
+      <div class="badge-hero">🎬 Generador de video con IA</div>
+      <h1>De una <span style="color:var(--accent)">idea</span> a un video<br>listo para publicar, en minutos</h1>
+      <p>Escribe tu idea, elige la voz y el formato, y recibe un video para YouTube o un short para Reels/TikTok. Sin cámara, sin edición, sin complicaciones.</p>
+      <div class="hero-cta">
+        <button class="btn btn-primary" onclick="scrollToAuth('reg')">Empezar gratis →</button>
+        <span class="hint">Tu primer video demo es gratis. Sin tarjeta.</span>
+      </div>
+    </div>
+
+    <div class="showcase">
+      <div class="sc-lbl">Ejemplos del tipo de contenido que puedes crear 👇</div>
+      <div class="yt-grid">
+        <div class="yt-card">
+          <div class="thumb"><img src="/thumbs/g1.jpg" alt="5 hábitos para ahorrar dinero" loading="lazy"><span class="dur">2:14</span><span class="play">▶</span></div>
+          <div class="meta"><div class="mt">5 hábitos para ahorrar dinero este año</div><div class="ms">Tu Canal · 312 K vistas · hace 2 días</div></div>
+        </div>
+        <div class="yt-card">
+          <div class="thumb"><img src="/thumbs/g2.jpg" alt="3 tips de marketing" loading="lazy"><span class="dur">3:02</span><span class="play">▶</span></div>
+          <div class="meta"><div class="mt">3 tips de marketing que sí funcionan</div><div class="ms">Tu Marca · 540 K vistas · hace 1 semana</div></div>
+        </div>
+        <div class="yt-card">
+          <div class="thumb"><img src="/thumbs/g3.jpg" alt="10 datos que no sabías" loading="lazy"><span class="dur">1:47</span><span class="play">▶</span></div>
+          <div class="meta"><div class="mt">10 datos curiosos que te sorprenderán</div><div class="ms">Sabías Que · 1.1 M vistas · hace 3 días</div></div>
+        </div>
+      </div>
+      <div class="sc-lbl">…y shorts verticales para Reels / TikTok 📱</div>
+      <div class="shorts-row">
+        <div class="short"><img src="/thumbs/g4.jpg" alt="¿Sabías esto?" loading="lazy"><span class="s-views">▶ 1.2 M</span></div>
+        <div class="short"><img src="/thumbs/g5.jpg" alt="Rutina mañanera" loading="lazy"><span class="s-views">▶ 890 K</span></div>
+        <div class="short"><img src="/thumbs/g6.jpg" alt="Motívate hoy" loading="lazy"><span class="s-views">▶ 2.1 M</span></div>
+        <div class="short"><img src="/thumbs/g7.jpg" alt="Receta en 30s" loading="lazy"><span class="s-views">▶ 640 K</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step"><div class="n">1</div><b>Escribe tu idea</b><p>Un tema o un texto detallado. Tú decides el tono.</p></div>
+      <div class="step"><div class="n">2</div><b>La IA arma el video</b><p>Guion por escenas, voz natural, imágenes y subtítulos.</p></div>
+      <div class="step"><div class="n">3</div><b>Descarga y publica</b><p>Listo en 16:9 (YouTube) o 9:16 (Shorts/Reels).</p></div>
+    </div>
+
+    <div class="card"><h2 style="text-align:center">Todo lo que necesitas para crear contenido</h2>
+      <div class="features">
+        <div class="feat"><b>🗣️ Voces naturales</b><p>En español (Perú, México, España) e inglés.</p></div>
+        <div class="feat"><b>🖼️ Imágenes automáticas</b><p>Cada escena con una imagen relevante y movimiento.</p></div>
+        <div class="feat"><b>📝 Subtítulos incluidos</b><p>Quemados en el video, listos para redes.</p></div>
+        <div class="feat"><b>🎵 Música de fondo</b><p>Un toque profesional en cada video.</p></div>
+        <div class="feat"><b>📐 YouTube y Shorts</b><p>Genera en horizontal o vertical.</p></div>
+        <div class="feat"><b>⚡ En minutos</b><p>Sin editar nada tú mismo.</p></div>
+      </div>
+    </div>
+
+    <div class="card"><h2 style="text-align:center">Planes simples</h2>
+      <p class="hint" style="text-align:center">Empieza gratis. Sube de plan cuando lo necesites.</p>
+      <div id="publicPlans" class="plans"></div>
+    </div>
+
+    <div class="card"><h2 style="text-align:center">Lo que dicen nuestros usuarios</h2>
+      <div class="features">
+        <div class="feat testi"><div class="stars">★★★★★</div><p>"Antes pagaba S/150 por cada video editado. Ahora hago uno en 5 minutos y publico todos los días."</p><b>Lucía Ramírez</b><span>Tienda de ropa online</span></div>
+        <div class="feat testi"><div class="stars">★★★★★</div><p>"La voz y los subtítulos quedan tan profesionales que mis clientes no creen que sean automáticos."</p><b>Marco Torres</b><span>Agencia de marketing</span></div>
+        <div class="feat testi"><div class="stars">★★★★★</div><p>"Subo un short diario a mi canal sin gastar en edición. Me cambió la forma de crear contenido."</p><b>Andrea Palacios</b><span>Creadora de contenido</span></div>
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <div id="authAnchor" class="card" style="max-width:440px;margin:0 auto">
+      <div class="tabs"><button id="tabLogin" class="active" onclick="authTab('login')">Ingresar</button><button id="tabReg" onclick="authTab('reg')">Crear cuenta</button></div>
+      <div id="regFields" class="hidden"><label class="f">Nombre</label><input id="rName" class="inp"></div>
+      <label class="f">Correo</label><input id="aEmail" class="inp" type="email" placeholder="tucorreo@ejemplo.com">
+      <label class="f">Contraseña</label><input id="aPass" class="inp" type="password" placeholder="mínimo 6 caracteres">
+      <button class="btn btn-primary" style="width:100%;margin-top:16px" id="authBtn" onclick="doAuth()">Ingresar</button>
+      <div id="authMsg" class="msg"></div>
+    </div>
+
+    <div class="faq">
+      <h2 style="text-align:center">Preguntas frecuentes</h2>
+      <div class="qa"><b>¿Necesito saber editar?</b><p>No. Escribes tu idea y la app hace todo.</p></div>
+      <div class="qa"><b>¿Puedo usar los videos para vender?</b><p>Sí, el video es tuyo.</p></div>
+      <div class="qa"><b>¿Cómo pago?</b><p>Con tarjeta (Stripe) o medios locales (Mercado Pago).</p></div>
+      <div class="qa"><b>¿Puedo cancelar?</b><p>Cuando quieras; mantienes el acceso hasta el fin del período.</p></div>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="view-generator" class="hidden">
+    <div id="verifyBanner" class="card hidden" style="border-color:#fbbf24;background:rgba(251,191,36,.08)">
+      <b>✉️ Confirma tu correo</b> para poder generar videos.<div id="verifyLink" class="hint"></div>
+    </div>
+    <div class="card"><h2>Crea tu video</h2>
+      <label class="f">Describe tu idea con el mayor detalle posible</label>
+      <textarea id="idea" class="inp area" rows="6" placeholder="Ej: Un video corto sobre 5 hábitos para ahorrar dinero. Tono motivacional. Que empiece con una pregunta y termine invitando a empezar hoy."></textarea>
+      <div class="grid">
+        <div><label class="f">Tono</label><select id="tone" class="inp">
+          <option value="informativo">Informativo</option><option value="educativo">Educativo</option>
+          <option value="motivacional">Motivacional</option><option value="marketing">Marketing</option>
+          <option value="storytelling">Storytelling</option></select></div>
+        <div><label class="f">N.º de escenas</label><input id="scenes" class="inp" type="number" value="5" min="2" max="8"></div>
+        <div><label class="f">Voz</label><select id="voice" class="inp"></select></div>
+        <div><label class="f">Idioma</label><select id="lang" class="inp"><option value="es">Español</option><option value="en">Inglés</option></select></div>
+        <div><label class="f">Formato</label><div class="seg"><button class="segbtn active" data-fmt="16:9">16:9 YouTube</button><button class="segbtn" data-fmt="9:16">9:16 Shorts</button></div></div>
+        <div><label class="check" style="margin-top:34px"><input type="checkbox" id="subs" checked> Subtítulos</label></div>
+      </div>
+      <div class="actions"><button class="btn btn-primary" id="btnCreate" onclick="startJob()">🎬 Generar video</button></div>
+      <div id="genMsg" class="msg"></div>
+    </div>
+    <div id="progCard" class="card hidden"><h2>Creando tu video…</h2>
+      <div class="progwrap"><div id="progbar" class="progbar"></div></div><div id="progmsg" class="hint"></div></div>
+    <div id="resCard" class="card hidden"><h2>✅ Tu video está listo</h2>
+      <video id="player" class="player" controls></video>
+      <div class="actions"><a class="btn btn-primary" id="dl" download>⬇ Descargar</a><button class="btn btn-ghost" onclick="show('resCard',false)">Crear otro</button></div></div>
+  </section>
+
+  <section id="view-videos" class="hidden"><div class="card"><h2>Mis videos</h2><div id="videoList"></div></div></section>
+
+  <section id="view-plans" class="hidden">
+    <div id="subCard" class="card hidden"><h2>Mi suscripción</h2><div id="subStatus"></div></div>
+    <div class="card"><h2>Elige tu plan</h2><p class="hint" id="curPlan"></p><div id="planCards" class="plans"></div></div>
+    <div class="card"><h2>Invita y gana 🎁</h2>
+      <p class="hint">Por cada amigo que se registre con tu enlace, ganas <b>5 videos extra</b> (sin marca de agua).</p>
+      <div class="vitem"><span id="refLink" style="word-break:break-all"></span><button class="linkbtn" onclick="copyRef()">Copiar</button></div>
+      <p class="hint" id="refCount"></p>
+    </div>
+  </section>
+
+  <section id="view-admin" class="hidden">
+    <div class="card"><h2>Panel de administración</h2><div id="adminKpis" class="kpis"></div></div>
+    <div class="row">
+      <div class="card pad" style="flex:2;min-width:320px"><b>Nuevos usuarios por día</b><div id="chUsers"></div></div>
+      <div class="card pad" style="flex:1;min-width:220px"><b>Distribución de planes</b><div id="chPlans" style="display:flex;justify-content:center;margin-top:8px"></div><div id="chPlansLeg" class="legend"></div></div>
+    </div>
+    <div class="card pad"><b>Videos generados (14 días)</b><div id="chVideos"></div></div>
+    <div class="card"><button class="btn btn-ghost" onclick="runExpiry()">Enviar avisos de vencimiento</button> <span id="expMsg" class="hint"></span></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div>IdeaVideo · SaaS de generación de video con IA</div>
+  <div style="margin-top:6px"><a href="/terminos">Términos</a> · <a href="/privacidad">Privacidad</a> · <a href="/reembolsos">Reembolsos</a></div>
+</footer>
+<script src="/app.js"></script>
+</body>
+</html>
