@@ -2,7 +2,7 @@
 IdeaVideo SaaS — servidor Flask (versión Pro: cola de render, almacenamiento en nube,
 correos automáticos, métricas, páginas legales). Sobre la Fase 2.
 """
-import os, uuid, secrets, traceback
+import os, uuid, secrets, traceback, time, threading, shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from flask import Flask, request, jsonify, session, send_from_directory, send_file, redirect
@@ -24,6 +24,40 @@ app.secret_key = os.getenv("SECRET_KEY", "cambia-esto-en-produccion")
 JOBS = {}
 # Cola de render con concurrencia limitada (escala: sube RENDER_WORKERS o migra a Redis+workers).
 EXECUTOR = ThreadPoolExecutor(max_workers=int(os.getenv("RENDER_WORKERS", "1")))
+
+# --- Limpieza automática de videos (ahorra disco/memoria) ---
+# Los videos NO se guardan en el repositorio: se generan en disco temporal del servidor.
+# Se borran al descargarlos y, si no se descargan, a las VIDEO_TTL_H horas.
+VIDEO_TTL_H = float(os.getenv("VIDEO_TTL_H", "24"))
+
+def _safe_del(path):
+    try:
+        p = Path(path)
+        if p.is_file(): p.unlink()
+    except Exception as e:
+        print("no se pudo borrar", path, e)
+
+def _sweep_once():
+    now = time.time()
+    ttl = VIDEO_TTL_H * 3600
+    # borra .mp4 vencidos en output/
+    for f in OUT.glob("*.mp4"):
+        try:
+            if now - f.stat().st_mtime > ttl: f.unlink()
+        except Exception: pass
+    # borra carpetas de trabajo temporales de más de 2 horas
+    for d in WORK.iterdir():
+        try:
+            if d.is_dir() and now - d.stat().st_mtime > 7200: shutil.rmtree(d, ignore_errors=True)
+        except Exception: pass
+
+def _sweeper():
+    while True:
+        try: _sweep_once()
+        except Exception as e: print("sweeper error:", e)
+        time.sleep(1800)  # cada 30 min
+
+threading.Thread(target=_sweeper, daemon=True).start()
 
 VOICES = [
     {"id":"es-PE-CamilaNeural","label":"Camila — Mujer (Perú)","lang":"es"},
@@ -210,7 +244,30 @@ def my_videos():
 
 @app.get("/videos/<path:name>")
 def videos(name):
-    return send_file(OUT / name)
+    # Seguridad: solo nombre de archivo simple dentro de output/
+    safe = os.path.basename(name)
+    fpath = OUT / safe
+    if not fpath.is_file():
+        return jsonify({"error": "Este video ya no está disponible (se elimina tras descargarlo o a las 24 h)."}), 404
+    if request.args.get("dl"):
+        # Descarga explícita: envía el archivo por streaming y lo borra al terminar.
+        from flask import Response
+        size = fpath.stat().st_size
+        def stream():
+            try:
+                with open(fpath, "rb") as f:
+                    while True:
+                        chunk = f.read(262144)
+                        if not chunk: break
+                        yield chunk
+            finally:
+                _safe_del(fpath)
+        resp = Response(stream(), mimetype="video/mp4")
+        resp.headers["Content-Length"] = str(size)
+        resp.headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+        return resp
+    # Reproducción en el sitio: send_file normal (permite adelantar/retroceder).
+    return send_file(fpath)
 
 # ---------------- PAGOS ----------------
 @app.post("/api/checkout")

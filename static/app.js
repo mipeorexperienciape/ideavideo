@@ -8,6 +8,8 @@ function api(path, opts = {}) {
     .then(async r => { const d = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(d.error || 'Error'), { data: d, status: r.status }); return d; });
 }
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+// Marca la descarga para que el servidor borre el archivo tras enviarlo (solo videos locales).
+function dlUrl(u){ return (u && u.indexOf('/videos/')===0) ? u + (u.indexOf('?')>=0?'&':'?') + 'dl=1' : u; }
 
 /* ---------- boot ---------- */
 (async function boot() {
@@ -100,7 +102,7 @@ function poll(id){
   pollTimer = setInterval(async () => {
     try { const d = await api('/job/'+id);
       setProg(d.progress, d.message);
-      if (d.status==='done'){ clearInterval(pollTimer); show('progCard',false); $('#player').src=d.video; $('#dl').href=d.video; show('resCard',true); refreshMe(); }
+      if (d.status==='done'){ clearInterval(pollTimer); show('progCard',false); $('#player').src=d.video; $('#dl').href=dlUrl(d.video); show('resCard',true); refreshMe(); }
       else if (d.status==='error'){ clearInterval(pollTimer); show('progCard',false); $('#genMsg').className='msg err'; $('#genMsg').textContent=d.error; }
     } catch(e){}
   }, 1500);
@@ -111,27 +113,49 @@ async function loadVideos(){
   const d = await api('/videos');
   $('#videoList').innerHTML = d.videos.length ? d.videos.map(v =>
     `<div class="vitem"><div><b>${esc(v.title||'Video')}</b><div class="hint" style="margin:2px 0 0">${v.fmt} · ${v.created_at}</div></div>
-     <div style="display:flex;gap:8px;align-items:center">${v.watermark?'<span class="tag wm">demo</span>':''}<a class="linkbtn" href="/videos/${v.filename}" download>Descargar</a></div></div>`
+     <div style="display:flex;gap:8px;align-items:center">${v.watermark?'<span class="tag wm">demo</span>':''}<a class="linkbtn" href="/videos/${v.filename}?dl=1" download>Descargar</a></div></div>`
   ).join('') : '<p class="hint">Aún no has creado videos.</p>';
 }
 
 /* ---------- plans ---------- */
+function planFeatures(p){
+  return (p.features || []).map(f => `<li><span class="ck">✓</span><span>${esc(f)}</span></li>`).join('');
+}
 function renderPlans(el, upgrade){
   if (!el) return;
   el.innerHTML = PLANS.map(p => {
-    const pop = p.id==='creador' ? 'pop' : '';
+    const pop = p.id==='creador';
+    const price = p.price_pen === 0
+      ? `<span class="amt">Gratis</span>`
+      : `<span class="cur">S/</span><span class="amt">${p.price_pen}</span><span class="per">/mes</span>`;
+    const usd = p.price_usd > 0
+      ? `<div class="pusd">≈ US$ ${p.price_usd} / mes · cancela cuando quieras</div>`
+      : `<div class="pusd">Sin tarjeta de crédito</div>`;
     let cta = '';
-    if (upgrade && p.id!=='free') {
-      const cur = ME && ME.plan===p.id;
-      cta = cur ? `<button class="btn btn-ghost" disabled>Tu plan actual</button>`
-        : `<button class="btn btn-primary" onclick="checkout('${p.id}','mercadopago')">Perú · Mercado Pago</button>
-           <button class="btn btn-ghost" style="margin-top:8px" onclick="checkout('${p.id}','stripe')">Internacional · Stripe</button>`;
+    if (upgrade) {
+      if (p.id === 'free') {
+        cta = `<button class="btn btn-ghost pbtn" disabled>Tu punto de partida</button>`;
+      } else {
+        const cur = ME && ME.plan === p.id;
+        cta = cur
+          ? `<button class="btn btn-ghost pbtn" disabled>✓ Tu plan actual</button>`
+          : `<button class="btn ${pop?'btn-primary':'btn-ghost'} pbtn" onclick="checkout('${p.id}','mercadopago')">Elegir · Perú (Mercado Pago)</button>
+             <button class="btn btn-ghost pbtn" style="margin-top:8px" onclick="checkout('${p.id}','stripe')">Internacional (Stripe)</button>`;
+      }
+    } else {
+      cta = p.id === 'free'
+        ? `<button class="btn btn-ghost pbtn" onclick="scrollToAuth('reg')">Empezar gratis</button>`
+        : `<button class="btn ${pop?'btn-primary':'btn-ghost'} pbtn" onclick="scrollToAuth('reg')">Elegir ${esc(p.name)}</button>`;
     }
-    return `<div class="plan ${pop}">${pop?'<span class="tag">Popular</span>':''}
+    return `<div class="plan ${pop?'pop':''}">
+      ${pop?'<span class="tag">★ Más popular</span>':''}
       <div class="pn">${esc(p.name)}</div>
-      <div class="pp">S/ ${p.price_pen}<small>/mes</small></div>
-      <div class="hint" style="margin:0">US$ ${p.price_usd}/mes</div>
-      <div class="pd">${esc(p.desc)}</div>${cta}</div>`;
+      <div class="ptag">${esc(p.tagline || p.desc)}</div>
+      <div class="pp">${price}</div>
+      ${usd}
+      ${cta}
+      <ul class="pfeat">${planFeatures(p)}</ul>
+    </div>`;
   }).join('');
 }
 async function loadPlans(){
