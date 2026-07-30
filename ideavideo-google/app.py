@@ -2,7 +2,7 @@
 IdeaVideo SaaS — servidor Flask (versión Pro: cola de render, almacenamiento en nube,
 correos automáticos, métricas, páginas legales). Sobre la Fase 2.
 """
-import os, uuid, secrets, traceback, time, threading, shutil
+import os, uuid, secrets, traceback, time, threading, shutil, sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from flask import Flask, request, jsonify, session, send_from_directory, send_file, redirect
@@ -113,12 +113,17 @@ def register():
         row = con.execute("SELECT id FROM users WHERE referral_code=?", (ref,)).fetchone()
         if row: referred_by = row["id"]
     token = secrets.token_urlsafe(16)
-    cur = con.execute("INSERT INTO users(name,email,password_hash,plan,email_verified,verify_token,referral_code,referred_by) VALUES(?,?,?,?,0,?,?,?)",
-                      (name, email, hash_pw(pw), "free", token, gen_code(), referred_by))
-    uid = cur.lastrowid
-    if referred_by:
-        con.execute("UPDATE users SET bonus_credits = bonus_credits + ? WHERE id=?", (REFERRAL_BONUS, referred_by))
-    con.commit(); con.close()
+    try:
+        cur = con.execute("INSERT INTO users(name,email,password_hash,plan,email_verified,verify_token,referral_code,referred_by) VALUES(?,?,?,?,0,?,?,?)",
+                          (name, email, hash_pw(pw), "free", token, gen_code(), referred_by))
+        uid = cur.lastrowid
+        if referred_by:
+            con.execute("UPDATE users SET bonus_credits = bonus_credits + ? WHERE id=?", (REFERRAL_BONUS, referred_by))
+        con.commit()
+    except sqlite3.IntegrityError:
+        # Doble envío / carrera: el correo se insertó en paralelo. Respuesta limpia, no 500.
+        con.close(); return jsonify({"error": "Ese correo ya está registrado."}), 409
+    con.close()
     session["uid"] = uid
     link = request.host_url.rstrip("/") + "/verify?token=" + token
     sent = send_email(email, f"Bienvenido a {APP_NAME} — confirma tu correo",

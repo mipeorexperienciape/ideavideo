@@ -57,13 +57,32 @@ function showApp(d) {
 /* ---------- auth ---------- */
 window.authTab = (m) => { authMode = m; $('#tabLogin').classList.toggle('active', m==='login'); $('#tabReg').classList.toggle('active', m==='reg');
   $('#regFields').classList.toggle('hidden', m!=='reg'); $('#authBtn').textContent = m==='login'?'Ingresar':'Crear cuenta'; };
+let _authBusy = false;
 window.doAuth = async () => {
+  if (_authBusy) return;                 // evita doble clic / doble envío
+  _authBusy = true;
+  const btn = $('#authBtn');
+  btn.disabled = true;
+  btn.textContent = authMode==='login' ? 'Ingresando…' : 'Creando cuenta…';
   const ref = new URLSearchParams(location.search).get('ref') || '';
   const body = { name: $('#rName').value, email: $('#aEmail').value, password: $('#aPass').value, ref };
-  try { const r = await api(authMode==='login'?'/login':'/register', { method:'POST', body: JSON.stringify(body) });
+  try {
+    const r = await api(authMode==='login'?'/login':'/register', { method:'POST', body: JSON.stringify(body) });
     if (r && r.verify_link) window._verifyLink = r.verify_link;
     $('#authMsg').textContent=''; await refreshMe();
-  } catch (e) { $('#authMsg').className='msg err'; $('#authMsg').textContent = e.message; }
+  } catch (e) {
+    $('#authMsg').className='msg err';
+    if (authMode==='reg' && e.status===409) {
+      $('#authMsg').textContent = 'Ese correo ya está registrado. Te cambié a "Ingresar": usa tu contraseña.';
+      authTab('login');
+    } else {
+      $('#authMsg').textContent = e.message;
+    }
+  } finally {
+    _authBusy = false;
+    btn.disabled = false;
+    btn.textContent = authMode==='login' ? 'Ingresar' : 'Crear cuenta';
+  }
 };
 window.logout = async () => { await api('/logout', { method:'POST' }); ME=null; showAuth(); };
 
