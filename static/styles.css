@@ -100,3 +100,31 @@ h2{margin:0 0 16px;font-size:22px}
 .testi .stars{color:#fbbf24;font-size:15px;letter-spacing:2px;margin-bottom:6px}
 .testi b{display:block;margin-top:10px;font-size:14px}
 .testi span{color:var(--muted);font-size:12.5px}
+
+/* --- Galería de ejemplos (miniaturas YouTube + Shorts) --- */
+.showcase{max-width:820px;margin:10px auto 6px}
+.sc-lbl{text-align:center;color:var(--muted);font-size:13.5px;font-weight:600;margin:18px 0 10px}
+.yt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.yt-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.thumb{position:relative;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.thumb .ic{font-size:44px;opacity:.55;position:absolute;top:12px;left:14px}
+.thumb .tov{position:absolute;left:12px;bottom:12px;right:12px;color:#fff;font-weight:900;font-size:16px;line-height:1.05;letter-spacing:-.3px;text-shadow:0 2px 8px rgba(0,0,0,.5);text-align:left}
+.thumb .dur{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.75);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px}
+.thumb .play{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(237,28,36,.92);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;padding-left:3px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.yt-card .meta{padding:10px 12px}
+.yt-card .mt{font-weight:700;font-size:13.5px;line-height:1.25}
+.yt-card .ms{color:var(--muted);font-size:12px;margin-top:4px}
+.shorts-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.short{position:relative;width:132px;aspect-ratio:9/16;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)}
+.short .ic{font-size:40px;opacity:.7}
+.short .s-ttl{position:absolute;left:8px;right:8px;bottom:10px;color:#fff;font-weight:800;font-size:13px;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.short .s-views{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px}
+/* gradientes de las miniaturas */
+.g1{background:linear-gradient(135deg,#0ea968,#065f46)}
+.g2{background:linear-gradient(135deg,#7c3aed,#2b1b6b)}
+.g3{background:linear-gradient(135deg,#2563eb,#0b2a63)}
+.g4{background:linear-gradient(135deg,#ec4899,#7a1d4f)}
+.g5{background:linear-gradient(135deg,#f59e0b,#7c4a02)}
+.g6{background:linear-gradient(135deg,#6366f1,#25256e)}
+.g7{background:linear-gradient(135deg,#14b8a6,#0b4f48)}
+@media(max-width:640px){.yt-grid{grid-template-columns:1fr}}
