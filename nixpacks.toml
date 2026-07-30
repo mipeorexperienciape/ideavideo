@@ -1,0 +1,3 @@
+# Railway/Nixpacks: instala ffmpeg (montaje) y espeak-ng (respaldo de voz).
+[phases.setup]
+aptPkgs = ["ffmpeg", "espeak-ng"]
