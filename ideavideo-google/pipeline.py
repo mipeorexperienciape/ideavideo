@@ -42,8 +42,15 @@ TONE = {"informativo":("Esto es lo que necesitas saber.","Gracias por ver este v
 def _title(s, n=7):
     t=" ".join(s.split()[:n]); return (t[:1].upper()+t[1:]).rstrip(".,;: ")
 
+def _clean_idea(idea):
+    """Quita frases de mando ('crea un video de...') para que la narración no las repita."""
+    t = (idea or "").strip()
+    t = re.sub(r'(?i)^\s*(por favor[,\s]*)?(cr[eé]a|h[aá]z|hazme|genera|gener[aá]me|quiero|necesito|arma| armame|prepara|realiza|me gustar[ií]a)\b[^.]*?\b(videos?|shorts?|reels?|clips?)\b\s*(cortos?|verticales?)?\s*(sobre|acerca de|de)\s+', '', t)
+    return t.strip() or (idea or "").strip()
+
 def build_from_idea(idea, tone="informativo", n_scenes=5, lang="es"):
     intro_t, outro_t = TONE.get(tone, TONE["informativo"])
+    idea = _clean_idea(idea)
     sents = _split(idea) or [idea.strip() or "IdeaVideo"]
     n = max(1, min(int(n_scenes), len(sents))); per = math.ceil(len(sents)/n)
     groups = [sents[i:i+per] for i in range(0,len(sents),per)]
@@ -57,12 +64,15 @@ def expand_idea_with_llm(idea, tone="informativo", n_scenes=5, lang="es"):
     key = os.getenv("GROQ_API_KEY")
     if not key: return None
     try:
-        prompt = (f"Eres guionista. A partir de esta IDEA escribe un guion en español, tono {tone}, "
-                  f"con {n_scenes} escenas más intro y cierre. Devuelve SOLO JSON: "
-                  f'{{"scenes":[{{"title":"...","narration":"...","keywords":"palabras para buscar una imagen"}}]}}. IDEA: {idea}')
+        prompt = (f"Eres un guionista experto de videos cortos. A partir del siguiente TEMA, escribe el CONTENIDO REAL del video "
+                  f"(NO repitas ni narres la instrucción del usuario; desarrolla el tema con información concreta y atractiva). "
+                  f"Idioma: español. Tono: {tone}. Estructura: una intro que enganche, {n_scenes} escenas de contenido y un cierre con llamado a la acción. "
+                  f"Cada escena debe tener una narración de 1 a 2 frases naturales para locutar en voz alta. "
+                  f'Devuelve SOLO JSON válido con esta forma: {{"scenes":[{{"title":"titular corto","narration":"texto a locutar","keywords":"3 a 5 palabras EN INGLÉS para generar una imagen cinematográfica de la escena"}}]}}. '
+                  f"TEMA: {idea}")
         r = requests.post("https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization":f"Bearer {key}"},
-            json={"model":"llama-3.1-8b-instant","messages":[{"role":"user","content":prompt}],
+            json={"model":os.getenv("GROQ_MODEL","openai/gpt-oss-120b"),"messages":[{"role":"user","content":prompt}],
                   "temperature":0.7,"response_format":{"type":"json_object"}}, timeout=40)
         scenes = json.loads(r.json()["choices"][0]["message"]["content"]).get("scenes", [])
         if not scenes: return None
